@@ -77,10 +77,14 @@ void playClient(int port, char* address) {
 	}
 
 
-	printf("What would you like to call yourself?     ");
+	printf("What would you like to call yourself?\n\n");
 	gets_s(&ourSocket.data, 50);
 	gsend(&ourSocket);
 
+	grecv(&ourSocket);
+	printf("You have been connected to the host %s, waiting upon more users...\n\n\n", &ourSocket.data[0]);
+	grecv(&ourSocket);
+	printf("The game has started.\n\n\n");
 
 	while (1) {
 		grecv(&ourSocket);//receive our update
@@ -94,7 +98,7 @@ void playClient(int port, char* address) {
 			return;
 		}
 		else if (ourSocket.data[DSIZE - 1] == 3) {//someone fucking asshole won
-			printf("%s won the game!\n", &ourSocket.data[strlen(&ourSocket.data[0] + 1)]);
+			printf("%s won the game!\n", &ourSocket.data[strlen(&ourSocket.data[0]) + 1]);
 			printf("%s\n", &ourSocket.data[0]);
 			return;
 		}
@@ -179,10 +183,10 @@ int clienting(GSock* ourSocket) {
 
 		//Get the client to enter a card
 		while (1) {
-			char userin[3];
+			char userin[30];
 			card userInput;
 			printf("What card would you like to play?\n");
-			gets_s(&userin, 3);
+			gets_s(&userin, 30);
 			userInput.data[0] = userin[0];
 			userInput.data[1] = userin[1];
 

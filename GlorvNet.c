@@ -18,7 +18,7 @@ void createSock(GSock* sock, int port, char* address) {
 	sock->Addr.sin_family = AF_INET;
 	sock->Addr.sin_port = htons(port);
 	if (address != 0) {
-		sock->Addr.sin_addr.s_addr = inet_addr("192.168.100.9");
+		sock->Addr.sin_addr.s_addr = inet_addr(address);
 	}
 	else {
 		sock->Addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -31,7 +31,7 @@ int gconnect(GSock* sock) {
 
 void glisten(GSock* sock) {
 	bind(sock->sock, (SOCKADDR*)&sock->Addr, sizeof(sock->Addr));
-	printf("Listen:%d\n", listen(sock->sock, 5));
+	listen(sock->sock, 5);
 }
 
 void gaccept(GSock* listeningSock, GSock* passedSock) {

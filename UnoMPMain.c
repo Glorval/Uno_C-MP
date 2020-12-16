@@ -35,11 +35,13 @@ void main() {
 
 
 	do {//yay scope
-		char userin[10];
-		printf("Do you want to host a game? Y/N");
+		char userin[50];
+		printf("Do you want to host a game? Y/N\n");
 		gets_s(&userin, 10);
 		if (userin[0] == 'N') {
-			playClient(80, "192.168.100.9");//gtfo out of here
+			printf("Give the hosts IP address:   ");
+			gets_s(&userin, 30);
+			playClient(80, userin);//gtfo out of here
 			return;
 		}
 	} while (0);
@@ -47,7 +49,7 @@ void main() {
 
 	//NETWORKING OPENING
 	
-	printf("What do you want to call yourself?\n");
+	printf("\n\n\nWhat do you want to call yourself?\n");
 	gets_s(&players[0].playerName, DSIZE);
 
 	GSock listenSock;
@@ -59,11 +61,13 @@ void main() {
 		players[playerCount].playerSockets.dataSize = DSIZE;
 		gaccept(&listenSock, &players[playerCount].playerSockets);
 		grecv(&players[playerCount].playerSockets);
-		for (int currentChar = 0; currentChar < DSIZE; currentChar++) {
+		for (int currentChar = 0; currentChar < DSIZE - 1; currentChar++) {
 			players[playerCount].playerName[currentChar] = players[playerCount].playerSockets.data[currentChar];
 		}
-		printf("Player \"%s\" has joined. %d players in total. Are you waiting on more? Y/N\n", players[playerCount].playerName, playerCount);
-		
+		printf("\n\nPlayer \"%s\" has joined. %d players in total. Are you waiting on more? Y/N\n", players[playerCount].playerName, playerCount);
+		memmove(&players[playerCount].playerSockets.data, players[0].playerName, strlen(&players[0].playerName) + 1);
+		gsend(&players[playerCount].playerSockets);
+
 		char tempin[10];
 		playerCount++;
 		gets_s(&tempin, 10);
@@ -74,6 +78,12 @@ void main() {
 			printf("Max number of players reached.\n\n");
 			break;
 		}
+	}
+	
+
+	for (int cur = 1; cur < playerCount; cur++) {
+		//No actual data needs to be sent, they're just waiting on anything
+		gsend(&players[cur].playerSockets);
 	}
 	//END OF NETWORKING OPENING
 	
@@ -127,11 +137,13 @@ void main() {
 
 		if (currentPlayer == 0) {
 			//hosts turn
+			printf("\n\n\n\n");
 			if (skipped == 1) {//Did we get skipped?
 				//networking
 				printf("You were skipped\n");
 				currentPlayer = updateCurrentPlayer(currentPlayer, direction, playerCount);
 				skipped = 0;
+				printf("\n\n\n\n");
 			}
 			else if (drawTwod == 1) {//Did we get plus 2?
 				printf("You were Draw Twoed\n");
@@ -139,6 +151,7 @@ void main() {
 				handDrawCard(&players[0], deck);
 				currentPlayer = updateCurrentPlayer(currentPlayer, direction, playerCount);
 				drawTwod = 0;
+				printf("\n\n\n\n");
 			}
 			else if (drawFourd == 1) {
 				printf("You were Draw Foured\n");
@@ -148,10 +161,9 @@ void main() {
 				handDrawCard(&players[0], deck);
 				currentPlayer = updateCurrentPlayer(currentPlayer, direction, playerCount);//End of turn, move on
 				drawFourd = 0;
+				printf("\n\n\n\n");
 			}
 			else {//normal turn
-				clearscreen();
-
 				printf("Card in play: ");
 				detailedPrint(cardInPlay);
 				printf("\nYour Hand:");
@@ -163,9 +175,9 @@ void main() {
 
 				//Get the host to play a card
 				while (1) {
-					char input[3];
+					char input[30];
 					printf("What card would you like to play?\n");
-					gets_s(&input, 3);
+					gets_s(&input, 30);
 					card userInput;
 					userInput.data[0] = input[0];
 					userInput.data[1] = input[1];
@@ -205,9 +217,12 @@ void main() {
 			for (int cp = 1; cp < playerCount; cp++) {
 				clientCardPlayed(&players[cp].playerSockets, currentPlayer - 1, players[currentPlayer - 1].handsize, cardInPlay, players[currentPlayer - 1].playerName);
 			}
+			printf("\n\n\n\n");
 		}//end of hosts turn
 
-		if (players[0].handsize == 0) {//host won
+
+		//host won
+		if (players[0].handsize == 0) {
 			printf("Congrats, you have won the game!\n");
 			printf("Enter a victory message: ");
 			char message[DSIZE];
@@ -215,6 +230,7 @@ void main() {
 			for (int cp = 1; cp < playerCount; cp++) {
 				memmove(&players[cp].playerSockets.data, &message, DSIZE - 1);
 				memmove(&players[cp].playerSockets.data[strlen(&message) + 1], &players[0].playerName, strlen(&players[0].playerName) + 1);
+				players[cp].playerSockets.data[DSIZE - 1] = 3;
 				gsend(&players[cp].playerSockets);
 			}
 			printf("Enter anything to exit.");
@@ -236,7 +252,7 @@ void main() {
 				for (int currentP = 1; currentP < playerCount; currentP++) {
 					if (currentP != cp) {
 						memmove(&players[currentP].playerSockets.data, &message, DSIZE - 1);
-						memmove(&players[currentP].playerSockets.data[strlen(&message)], &players[cp].playerName,strlen(&players[cp].playerName));
+						memmove(&players[currentP].playerSockets.data[strlen(&message)+1], &players[cp].playerName,strlen(&players[cp].playerName) + 1);
 						players[currentP].playerSockets.data[DSIZE - 1] = 3;
 						gsend(&players[currentP].playerSockets);
 					}
@@ -252,17 +268,29 @@ void main() {
 			if (drawTwod) {
 				handDrawCard(&players[currentPlayer], deck);
 				handDrawCard(&players[currentPlayer], deck);
+				printf("Player #%d, %s was plus two'd and has %d cards.\n", currentPlayer, players[currentPlayer].playerName, players[currentPlayer].handsize);
 				drawTwod = 0;
+				printf("The current card in play is a ");
+				detailedPrint(cardInPlay);
+				printf("\n\n\n\n");
 			}
 			else if (drawFourd) {
 				handDrawCard(&players[currentPlayer], deck);
 				handDrawCard(&players[currentPlayer], deck);
 				handDrawCard(&players[currentPlayer], deck);
 				handDrawCard(&players[currentPlayer], deck);
+				printf("Player #%d, %s was plus four'd and has %d cards.\n", currentPlayer, players[currentPlayer].playerName, players[currentPlayer].handsize);
 				drawFourd = 0;
+				printf("The current card in play is a ");
+				detailedPrint(cardInPlay);
+				printf("\n\n\n\n");
 			}
 			else if (skipped) {
+				printf("Player #%d, %s was skipped and has %d cards.\n", currentPlayer, players[currentPlayer].playerName, players[currentPlayer].handsize);
 				skipped = 0;
+				printf("The current card in play is a ");
+				detailedPrint(cardInPlay);
+				printf("\n\n\n\n");
 			}
 			else {
 				skipped = 0;
@@ -271,6 +299,9 @@ void main() {
 				if (players[currentPlayer].playerSockets.data[2] == 0) {//if they actually played we check their cards and stuff
 					dataShifter(playedCard, &cardInPlay);//well, they played the card
 					removeCardFromHand(&players[currentPlayer], playedCard);
+					printf("Player #%d, %s played a ", currentPlayer, players[currentPlayer].playerName);
+					detailedPrint(playedCard);
+					printf(" and has %d cards.\n", players[currentPlayer].handsize);
 					directionUpdate(&direction, playedCard.data[0]);
 					if (playedCard.data[0] == 'S') {
 						skipped = 1;
@@ -284,7 +315,11 @@ void main() {
 				}
 				else{
 					handDrawCard(&players[currentPlayer], deck);
+					printf("Player #%d, %s drew and has %d cards.\n", currentPlayer, players[currentPlayer].playerName, players[currentPlayer].handsize);
 				}
+				printf("The current card in play is a ");
+				detailedPrint(cardInPlay);
+				printf("\n\n\n\n");
 			}
 
 			for (int cp = 1; cp < playerCount; cp++) {
@@ -309,7 +344,7 @@ void main() {
 				for (int currentP = 1; currentP < playerCount; currentP++) {
 					if (currentP != cp) {
 						memmove(&players[currentP].playerSockets.data, &message, DSIZE - 1);
-						memmove(&players[currentP].playerSockets.data[strlen(&message)], &players[cp].playerName, strlen(&players[cp].playerName));
+						memmove(&players[currentP].playerSockets.data[strlen(&message) + 1], &players[cp].playerName, strlen(&players[cp].playerName) + 1);
 						players[currentP].playerSockets.data[DSIZE - 1] = 3;
 						gsend(&players[currentP].playerSockets);
 					}
@@ -317,7 +352,6 @@ void main() {
 				return;
 			}
 		}
-
 
 	}//END OF LOOP
 
