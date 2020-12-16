@@ -40,6 +40,7 @@ void main() {
 		gets_s(&userin, 10);
 		if (userin[0] == 'N') {
 			playClient(80, "192.168.100.9");//gtfo out of here
+			return;
 		}
 	} while (0);
 
@@ -212,9 +213,8 @@ void main() {
 			char message[DSIZE];
 			gets_s(&message, DSIZE - 1);
 			for (int cp = 1; cp < playerCount; cp++) {
-				memmove(&players[cp].playerSockets.data, &message, DSIZE);
-				memmove(&players[cp].playerSockets.data[strlen(&message)], &players[cp].playerName, DSIZE);
-				players[cp].playerSockets.data[DSIZE - 1] = 3;
+				memmove(&players[cp].playerSockets.data, &message, DSIZE - 1);
+				memmove(&players[cp].playerSockets.data[strlen(&message) + 1], &players[0].playerName, strlen(&players[0].playerName) + 1);
 				gsend(&players[cp].playerSockets);
 			}
 			printf("Enter anything to exit.");
@@ -229,15 +229,19 @@ void main() {
 				gsend(&players[cp].playerSockets);
 				grecv(&players[cp].playerSockets);
 				char message[DSIZE];
-				memmove(&message, &players[cp].playerSockets.data, DSIZE);
+				memmove(&message, &players[cp].playerSockets.data, DSIZE - 1);
+				clearscreen();
+				printf("%s has won the game!\n", players[cp].playerName);
+				printf("%s", message);
 				for (int currentP = 1; currentP < playerCount; currentP++) {
 					if (currentP != cp) {
-						memmove(&players[currentP].playerSockets.data, &message, DSIZE);
-						memmove(&players[currentP].playerSockets.data[strlen(&message)], &players[currentP].playerName, DSIZE);
+						memmove(&players[currentP].playerSockets.data, &message, DSIZE - 1);
+						memmove(&players[currentP].playerSockets.data[strlen(&message)], &players[cp].playerName,strlen(&players[cp].playerName));
 						players[currentP].playerSockets.data[DSIZE - 1] = 3;
 						gsend(&players[currentP].playerSockets);
 					}
 				}
+				return;
 			}
 		}
 
@@ -298,18 +302,21 @@ void main() {
 				gsend(&players[cp].playerSockets);
 				grecv(&players[cp].playerSockets);
 				char message[DSIZE];
-				memmove(&message, &players[cp].playerSockets.data, DSIZE);
+				memmove(&message, &players[cp].playerSockets.data, DSIZE - 1);
+				clearscreen();
+				printf("%s has won the game!\n", players[cp].playerName);
+				printf("%s", message);
 				for (int currentP = 1; currentP < playerCount; currentP++) {
 					if (currentP != cp) {
-						memmove(&players[currentP].playerSockets.data, &message, DSIZE);
-						memmove(&players[currentP].playerSockets.data[strlen(&message)], &players[currentP].playerName, DSIZE);
+						memmove(&players[currentP].playerSockets.data, &message, DSIZE - 1);
+						memmove(&players[currentP].playerSockets.data[strlen(&message)], &players[cp].playerName, strlen(&players[cp].playerName));
 						players[currentP].playerSockets.data[DSIZE - 1] = 3;
 						gsend(&players[currentP].playerSockets);
 					}
 				}
+				return;
 			}
 		}
-
 
 
 	}//END OF LOOP

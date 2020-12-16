@@ -39,11 +39,11 @@ void gaccept(GSock* listeningSock, GSock* passedSock) {
 	passedSock->sock = accept(listeningSock->sock, (SOCKADDR*)&listeningSock->Addr, &addrsize);
 }
 
-void gsend(GSock* socket) {
-	send(socket->sock, &socket->data, socket->dataSize, 0);
+int gsend(GSock* socket) {
+	return(send(socket->sock, &socket->data, socket->dataSize, 0));
 }
 
-void grecv(GSock* socket) {
+int grecv(GSock* socket) {
 	int recieved = recv(socket->sock, &socket->data, socket->dataSize, 0);
 	if (recieved == -1) {
 		recieved = recv(socket->sock, &socket->data, socket->dataSize, 0);
@@ -52,4 +52,5 @@ void grecv(GSock* socket) {
 			printf("Faliure to recieve data, brace yourself!\n");
 		}
 	}
+	return(recieved);
 }

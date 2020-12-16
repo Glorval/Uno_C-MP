@@ -89,12 +89,12 @@ void playClient(int port, char* address) {
 			printf("Enter a victory message: ");
 			char message[DSIZE];
 			gets_s(&message, DSIZE - 1);
-			memmove(&ourSocket.data, message, DSIZE);
+			memmove(&ourSocket.data, message, DSIZE - 1);
 			gsend(&ourSocket);
 			return;
 		}
 		else if (ourSocket.data[DSIZE - 1] == 3) {//someone fucking asshole won
-			printf("%s won the game!\n", &ourSocket.data[strlen(&ourSocket.data[0])]);
+			printf("%s won the game!\n", &ourSocket.data[strlen(&ourSocket.data[0] + 1)]);
 			printf("%s\n", &ourSocket.data[0]);
 			return;
 		}

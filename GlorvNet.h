@@ -33,7 +33,7 @@ void glisten(GSock* sock);
 void gaccept(GSock* listeningSock, GSock* passedSock);
 
 //sends data
-void gsend(GSock* sock);
+int gsend(GSock* sock);
 
 //recieves data
-void grecv(GSock* sock);
+int grecv(GSock* sock);
