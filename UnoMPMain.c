@@ -111,7 +111,10 @@ void main() {
 		
 	}
 
-	drawCard(&cardInPlay, deck);//Put a card in play
+	do {
+		drawCard(&cardInPlay, deck);//Put a card in play
+	} while (cardInPlay.data[1] == 'w');
+	
 
 
 	//yeet the hands to the clients so that they can display them
