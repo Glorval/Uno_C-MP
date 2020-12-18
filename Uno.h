@@ -3,7 +3,7 @@
 #include "GlorvNet.h"
 //#include "UnoMPMain.c"
 #define DECKLENGTH 108//108 normal, 76 numbers only, 100 no wilds
-#define NUMBERDEALT 1
+#define NUMBERDEALT 7
 #define SHUFFLETHOROUGHNESS 5000
 #define MAXNUMBEROFPLAYERS 5
 
